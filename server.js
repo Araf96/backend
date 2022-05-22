@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 const userRoutes = require("./routes/user-routes");
 const siteRoutes = require("./routes/site-routes");
@@ -13,8 +14,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/sites", siteRoutes);
 app.use("/api/logs", logRoutes);
 
-app.use((req, res, next)=>{
-    res.status(404).send("Could not find this route");
+app.use((req, res, next) => {
+  res.status(404).send("Could not find this route");
 });
 
 app.use((error, req, res, next) => {
@@ -27,6 +28,17 @@ app.use((error, req, res, next) => {
     .json({ message: error.message || "An unknown error occurred." });
 });
 
-app.listen(3001, () => {
-  console.log("Server started");
-});
+mongoose
+  .connect(
+    "mongodb+srv://test_user:test_user123@myapp.fjzfo.mongodb.net/logging-application?retryWrites=true&w=majority"
+  )
+  .then(()=>{
+    app.listen(3001, () => {
+      console.log("Server started");
+    });
+    
+  })
+  .catch(err => {
+    console.log(err);
+  });
+

@@ -1,89 +1,137 @@
 const express = require("express");
-const { v4: uuid } = require("uuid");
 
+const { Site } = require("../models/site-model");
 const CustomError = require("../templates/ErrorTemplate");
+const getCoordinates = require("../Util/location");
+const EM = require("../Util/texts");
 
 const router = express.Router();
 
-let siteList = [
-  {
-    id: 1,
-    name: "Hospital site",
-    region: "Dhaka, Bangladesh",
-    description: "A place to build a hospital",
-    coordinates: { longitude: 100.0, latitude: 100.0 },
-    createdBy: 1,
-  },
-  {
-    id: 2,
-    name: "Power plant site",
-    region: "Barisal, Bangladesh",
-    description: "A place to build a power plant",
-    coordinates: { longitude: 200.0, latitude: 100.0 },
-    createdBy: 2,
-  },
-];
-
-router.get("/getsite/:userid", (req, res, next) => {
+router.get("/:userid", async (req, res, next) => {
   const userid = req.params.userid;
-  const selectedSite = siteList.filter((site) => site.createdBy == userid);
-  if (!selectedSite) {
+  let sites = [];
+
+  try {
+    sites = await Site.find({ createdBy: userid });
+    if (sites.length === 0) {
+      return next(
+        new CustomError("Could not find any place for the given user", 404)
+      );
+    }
+  } catch (e) {
+    return next(new CustomError("Something went wrong", 500));
+  }
+
+  res.json({ sites });
+});
+
+router.get("/", async (req, res, next) => {
+  let sites = [];
+  try {
+    sites = await Site.find();
+    if (sites.length === 0) {
+      return next(
+        new CustomError(
+          "Could not find any site to show. Please try again later",
+          404
+        )
+      );
+    }
+  } catch (e) {
     return next(
-      new CustomError("Could not find any place for the given user", 404)
+      new CustomError("Could not fetch data. Please try again later", 404)
     );
   }
-  res.json({ sites: selectedSite });
+
+  res.json({ sites });
 });
 
-router.get("/", (req, res, next) => {
-  res.json({ sites: siteList });
-});
+router.post("/", async (req, res, next) => {
+  const { name, region, description, createdBy } = req.body;
 
-router.post("/", (req, res, next) => {
-  const { name, region, description, coordinates, createdBy } = req.body;
+  try {
+    var response = await getCoordinates(region);
+    if (response.status === "FAILED") {
+      return next(
+        new CustomError("Area could not be found. Try a new area", 422)
+      );
+    }
+  } catch (e) {
+    return next(
+      new CustomError("Something went wrong.", 500)
+    );
+  }
 
-  const newSite = {
-    id: uuid(),
+  const newSite = new Site({
     name,
     region,
     description,
-    coordinates,
+    coordinates: response.coordinates,
     createdBy,
-  };
+  });
 
-  siteList.push(newSite);
+  try {
+    const res = await newSite.save();
+  } catch (err) {
+    let message = "";
+    if (err.name === "ValidationError") {
+      var keys = Object.keys(err.errors);
 
+      if (err.errors[keys[0]]) {
+        message = err.errors[keys[0]].message;
+      } else {
+        message = EM.ERR_UNKNOWN;
+      }
+      return next(new CustomError(message, 500));
+    }
+  }
   res.status(201).json({ site: newSite });
 });
 
-router.patch("/:siteid", (req, res, next) => {
+router.patch("/:siteid", async(req, res, next) => {
   const siteid = req.params.siteid;
-  const { name, region, description, coordinates, createdBy } = req.body;
-  const site = siteList.find((site) => site.id == siteid);
+  const { name, region, description } = req.body;
 
-  if (!site) {
-    return next(new CustomError("Could not find the requested site", 404));
+  try {
+    var response = await getCoordinates(region);
+
+    if (response.status === "FAILED") {
+      return next(
+        new CustomError("Area could not be found. Try a new area", 422)
+      );
+    }
+  } catch (e) {
+    return next(
+      new CustomError("Something went wrong.", 500)
+    );
   }
 
-  const updatedSite = { ...site };
+  const filter = { _id: siteid };
+  const update = { name, region, description, coordinates: response.coordinates };
 
-  const siteIndex = siteList.findIndex((site) => site.id == siteid);
-  updatedSite.name = name;
-  updatedSite.region = region;
-  updatedSite.description = description;
-  updatedSite.coordinates = coordinates;
-  updatedSite.createdBy = createdBy;
+  try{
+    var updatedPlace = await Site.findOneAndUpdate(filter, update, {new: true});
+  }catch(err){
+    return next(
+      new CustomError("Failed to update the site.", 500)
+    );
+  }
 
-  siteList[siteIndex] = updatedSite;
-
-  res.json({ site: updatedSite });
+  res.json({ site: updatedPlace });
 });
 
-router.delete("/:siteid", (req, res, next) => {
+router.delete("/:siteid", async (req, res, next) => {
   const siteid = req.params.siteid;
-  siteList = siteList.filter((site) => site.id != siteid);
+  
+  try{
+    await Site.findOneAndDelete({_id: siteid});
+  }catch(e){
+    return next(
+      new CustomError("Failed to delete the site.", 500)
+    );
+  }
 
-  res.json({ message: "delete a site" });
+  res.json({ message: "Deleted a site" });
 });
 
 module.exports = router;
