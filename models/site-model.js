@@ -24,9 +24,9 @@ const SiteObj = {
         required:[true, "LOCATION is required"]
     },
     createdBy:{
-        type:String,
+        type:mongoose.Types.ObjectId,
         required: [true, "Invalid userid"],
-        default:null
+        ref:'User'
     }
 }
 

@@ -4,8 +4,11 @@ const { Site } = require("../models/site-model");
 const CustomError = require("../templates/ErrorTemplate");
 const getCoordinates = require("../Util/location");
 const EM = require("../Util/texts");
+const {authenticateUser} = require("../middleware/auth-middleware");
 
 const router = express.Router();
+
+router.use(authenticateUser);
 
 router.get("/:userid", async (req, res, next) => {
   const userid = req.params.userid;
