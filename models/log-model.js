@@ -1,4 +1,3 @@
-const validator = require('validator');
 const mongoose = require('mongoose');
 
 const logObj = {
@@ -7,8 +6,8 @@ const logObj = {
         default: null
     },
     loggedBy:{
-        type: String,
-        default: null
+        type: mongoose.Types.ObjectId,
+        required: true
     },
     logType:{
         type:String,
@@ -22,6 +21,6 @@ const logObj = {
 
 var LogSchema = mongoose.Schema(logObj);
 
-var Logs = mongoose.model('Logs', LogSchema);
+var Log = mongoose.model('Log', LogSchema);
 
-module.exports = {Logs};
+module.exports = {Log};

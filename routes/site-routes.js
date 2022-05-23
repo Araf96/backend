@@ -5,6 +5,8 @@ const CustomError = require("../templates/ErrorTemplate");
 const getCoordinates = require("../Util/location");
 const EM = require("../Util/texts");
 const {authenticateUser} = require("../middleware/auth-middleware");
+const { default: mongoose } = require("mongoose");
+const { Log } =  require("../models/log-model");
 
 const router = express.Router();
 
@@ -73,20 +75,36 @@ router.post("/", async (req, res, next) => {
     createdBy,
   });
 
+  let logTime = new Date();
+  let logType = "create";
+  let logDescription = "Created by "+ req.body.user.firstName + " " + req.body.user.lastName; 
+  let loggedBy = req.body.user._id;
+
+  const newLog = new Log({
+    logTime,
+    logType,
+    logDescription,
+    loggedBy
+  });
+
   try {
-    const res = await newSite.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await newSite.save({session: sess});
+    await newLog.save({session: sess});
+    await sess.commitTransaction();
+
   } catch (err) {
-    let message = "";
+    console.log(err)
+    let message = EM.ERR_UNKNOWN;
     if (err.name === "ValidationError") {
       var keys = Object.keys(err.errors);
 
       if (err.errors[keys[0]]) {
         message = err.errors[keys[0]].message;
-      } else {
-        message = EM.ERR_UNKNOWN;
       }
-      return next(new CustomError(message, 500));
     }
+    return next(new CustomError(message, 500));
   }
   res.status(201).json({ site: newSite });
 });
@@ -112,8 +130,25 @@ router.patch("/:siteid", async(req, res, next) => {
   const filter = { _id: siteid };
   const update = { name, region, description, coordinates: response.coordinates };
 
+  let logTime = new Date();
+  let logType = "update";
+  let logDescription = "Updated by "+ req.body.user.firstName + " " + req.body.user.lastName; 
+  let loggedBy = req.body.user._id;
+
+  const newLog = new Log({
+    logTime,
+    logType,
+    logDescription,
+    loggedBy
+  });
+
   try{
-    var updatedPlace = await Site.findOneAndUpdate(filter, update, {new: true});
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    var updatedPlace = await Site.findOneAndUpdate(filter, update, {new: true, session: sess});
+    await newLog.save({session: sess});
+    sess.commitTransaction();
+
   }catch(err){
     return next(
       new CustomError("Failed to update the site.", 500)
@@ -125,9 +160,25 @@ router.patch("/:siteid", async(req, res, next) => {
 
 router.delete("/:siteid", async (req, res, next) => {
   const siteid = req.params.siteid;
+
+  let logTime = new Date();
+  let logType = "delete";
+  let logDescription = "Deleted by "+ req.body.user.firstName + " " + req.body.user.lastName; 
+  let loggedBy = req.body.user._id;
+
+  const newLog = new Log({
+    logTime,
+    logType,
+    logDescription,
+    loggedBy
+  });
   
   try{
-    await Site.findOneAndDelete({_id: siteid});
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await Site.findOneAndDelete({_id: siteid},{session: sess});
+    await newLog.save({session: sess});
+    sess.commitTransaction();
   }catch(e){
     return next(
       new CustomError("Failed to delete the site.", 500)
