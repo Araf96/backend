@@ -16,6 +16,10 @@ const logObj = {
     logDescription: {
         type: String,
         default: null
+    },
+    siteId:{
+        type: mongoose.Types.ObjectId,
+        required: true
     }
 }
 

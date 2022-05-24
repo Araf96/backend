@@ -30,6 +30,24 @@ router.get("/:userid", async (req, res, next) => {
   res.json({ sites });
 });
 
+router.get("/site/:siteid", async (req, res, next) => {
+  const siteid = req.params.siteid;
+  let site;
+
+  try {
+    site = await Site.findById(siteid);
+    if (!site) {
+      return next(
+        new CustomError("Could not find any place", 404)
+      );
+    }
+  } catch (e) {
+    return next(new CustomError("Something went wrong", 500));
+  }
+
+  res.json({ site });
+});
+
 router.get("/", async (req, res, next) => {
   let sites = [];
   try {
@@ -44,7 +62,7 @@ router.get("/", async (req, res, next) => {
     }
   } catch (e) {
     return next(
-      new CustomError("Could not fetch data. Please try again later", 404)
+      new CustomError("Could not fetch data. Please try again later", 500)
     );
   }
 
@@ -91,6 +109,7 @@ router.post("/", async (req, res, next) => {
     const sess = await mongoose.startSession();
     sess.startTransaction();
     await newSite.save({session: sess});
+    newLog.siteId = newSite._id;
     await newLog.save({session: sess});
     await sess.commitTransaction();
 
@@ -146,6 +165,7 @@ router.patch("/:siteid", async(req, res, next) => {
     const sess = await mongoose.startSession();
     sess.startTransaction();
     var updatedPlace = await Site.findOneAndUpdate(filter, update, {new: true, session: sess});
+    newLog.siteId = updatedPlace._id;
     await newLog.save({session: sess});
     sess.commitTransaction();
 
@@ -177,6 +197,7 @@ router.delete("/:siteid", async (req, res, next) => {
     const sess = await mongoose.startSession();
     sess.startTransaction();
     await Site.findOneAndDelete({_id: siteid},{session: sess});
+    newLog.siteId = siteid;
     await newLog.save({session: sess});
     sess.commitTransaction();
   }catch(e){

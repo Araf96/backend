@@ -8,9 +8,21 @@ const { getHashedValue, matchHash } = require("../Util/functions");
 
 const router = express.Router();
 
-// router.get("/", (req, res, next) => {
-//   res.json({ message: "get all users" });
-// });
+router.get("/", async (req, res, next) => {
+  let users = [];
+  try {
+    users = await User.find();
+    if (users.length === 0) {
+      users = [];
+    }
+  } catch (e) {
+    return next(
+      new CustomError("Could not fetch data. Please try again later", 500)
+    );
+  }
+
+  res.json({ users });
+});
 
 router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
