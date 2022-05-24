@@ -32,6 +32,10 @@ const SiteObj = {
 
 var SiteSchema = mongoose.Schema(SiteObj);
 
+SiteSchema.set('toJSON', {
+    virtuals: true
+});
+
 var Site = mongoose.model('Site', SiteSchema);
 
 module.exports = {Site};

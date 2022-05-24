@@ -26,16 +26,14 @@ router.post("/login", async (req, res, next) => {
           token = await user.generateAuthToken();
           res.header("x-auth", token).json(user);
         } catch (e) {
-          message = e.message;
+          return next(new CustomError(e.message, 500));
         }
       } else {
-        message = EM.INV_PASS;
+        return next(new CustomError(EM.INV_PASS, 500));
       }
     } else {
-      message = EM.USER_N_EXIST;
+      return next(new CustomError(EM.USER_N_EXIST, 500));
     }
-
-    return next(new CustomError(message, 500));
   } catch (e) {
     return next(new CustomError(EM.ERR_UNKNOWN, 500));
   }

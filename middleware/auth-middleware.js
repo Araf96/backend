@@ -5,8 +5,9 @@ const EM = require('../Util/texts');
 const CustomError = require("../templates/ErrorTemplate");
  
 const authenticateUser = async(req, res, next) => {
-
+    console.log(req.header);
     let token = req.header('x-auth');
+    console.log(token)
 
     try{
         let decoded = jwt.verify(token, EM.JWT_KEY);

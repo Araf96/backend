@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const cors = require('cors');
 
 const userRoutes = require("./routes/user-routes");
 const siteRoutes = require("./routes/site-routes");
@@ -8,6 +9,11 @@ const logRoutes = require("./routes/log-routes");
 
 const app = express();
 
+const corsOptions = {
+  exposedHeaders: 'x-auth',
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 app.use("/api/users", userRoutes);
