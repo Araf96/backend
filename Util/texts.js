@@ -1,5 +1,4 @@
 module.exports = {
-    LOCAL_URL : 'http://localhost:3001',
     ERROR : "ERROR",
     SUCCESS : "SUCCESS",
     USER_N_EXIST : "User doesn't exist",
