@@ -5,10 +5,11 @@ const { User } = require("../models/user-model");
 const CustomError = require("../templates/ErrorTemplate");
 const EM = require("../Util/texts");
 const { getHashedValue, matchHash } = require("../Util/functions");
+const { authenticateUser } = require("../middleware/auth-middleware");
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
+router.get("/", authenticateUser, async (req, res, next) => {
   let users = [];
   try {
     users = await User.find();
