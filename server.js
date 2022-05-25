@@ -36,7 +36,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    "mongodb+srv://test_user:test_user123@myapp.fjzfo.mongodb.net/logging-application?retryWrites=true&w=majority"
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@myapp.fjzfo.mongodb.net/${process.env.DB_NAME }?retryWrites=true&w=majority`
   )
   .then(()=>{
     app.listen(3001, () => {

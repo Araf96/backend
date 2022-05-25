@@ -1,0 +1,8 @@
+{
+    "env":{
+        "DB_USER": "test_user",
+        "DB_PASSWORD": "test_user123",
+        "DB_NAME": "test_database",
+        "GOOGLE_API_KEY": "AIzaSyB79MhpgM_DZZOcZEyouthsJMoF-dAFu20"
+    }
+}
