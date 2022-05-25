@@ -39,7 +39,7 @@ mongoose
     `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@myapp.fjzfo.mongodb.net/${process.env.DB_NAME }?retryWrites=true&w=majority`
   )
   .then(()=>{
-    app.listen(3001, () => {
+    app.listen(process.env.PORT || 3001, () => {
       console.log("Server started");
     });
     
