@@ -57,6 +57,10 @@ UserSchema.methods.toJSON = function () {
   return _.pick(user, ["_id","firstName", "lastName", "email"]);
 };
 
+UserSchema.set('toJSON', {
+  virtuals: true
+});
+
 UserSchema.methods.generateAuthToken = async function () {
   var user = this;
   try {
