@@ -7,6 +7,7 @@ const EM = require("../Util/texts");
 const {authenticateUser} = require("../middleware/auth-middleware");
 const { default: mongoose } = require("mongoose");
 const { Log } =  require("../models/log-model");
+const { User } = require("../models/user-model");
 
 const router = express.Router();
 
@@ -108,9 +109,15 @@ router.post("/", async (req, res, next) => {
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
+    const user = await User.findById(createdBy);
+    if(!user){
+      throw new Error();
+    }
     await newSite.save({session: sess});
     newLog.siteId = newSite._id;
     await newLog.save({session: sess});
+    user.sites.push(newSite);
+    await user.save({session: sess});
     await sess.commitTransaction();
 
   } catch (err) {

@@ -9,6 +9,10 @@ const { authenticateUser } = require("../middleware/auth-middleware");
 
 const router = express.Router();
 
+router.get("/verify", authenticateUser, async(req, res, next)=>{
+  res.send({message: "verified"});
+});
+
 router.get("/", authenticateUser, async (req, res, next) => {
   let users = [];
   try {
@@ -62,6 +66,7 @@ router.post("/signup", async (req, res, next) => {
     email,
     password,
     signupDate,
+    sites:[]
   });
 
   try {

@@ -35,7 +35,11 @@ const UserObj = {
   signupDate: {
     type: Date,
     default: null,
-  }
+  },
+  sites:[{
+    type: mongoose.Types.ObjectId,
+    ref: 'Sites'
+  }]
 };
 
 var UserSchema = mongoose.Schema(UserObj);
